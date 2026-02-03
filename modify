@@ -1,0 +1,119 @@
+#! /bin/bash
+
+
+
+
+
+FILE="./Data"
+[[ -f "$FILE" ]] || touch "$FILE"
+
+
+
+echo "Modify Book:"
+echo "1) Delete a Book"
+echo "2) Modify Book Info (except ID)"
+echo "Choose: "
+read choice
+
+case $choice in
+
+	1)
+		echo "Enter Book ID to delete: "
+		read id
+
+		if ! grep -q "^$id|" "$FILE"
+		then
+			echo "No book found"
+			exit 0
+		fi
+
+		tmp=$(mktemp)
+		grep -v "^$id|" "$FILE" > "$tmp"
+		mv "$tmp" "$FILE"
+
+		echo "Book deleted successfully"
+		;;
+
+	2)
+		echo "Enter Book ID to modify: "
+		read id
+
+		line=$(grep "^$id|" "$FILE")
+
+		if [[ -z "$line" ]]
+		then
+			echo "No book found"
+			exit 0
+		fi
+
+		oldTitle=$(echo "$line" | cut -d'|' -f2)
+		oldAuthor=$(echo "$line" | cut -d'|' -f3)
+		oldDate=$(echo "$line" | cut -d'|' -f4)
+		oldStatus=$(echo "$line" | cut -d'|' -f5)
+
+		echo "Current Title: $oldTitle"
+		echo -n "New Title (Enter to keep): "
+		read newTitle
+		if [[ -z "$newTitle" ]]
+		then
+			newTitle="$oldTitle"
+		fi
+
+	while true
+	do
+		echo -n "New Author (Enter to keep): "
+		read newAuthor
+		if [[ -z "$newAuthor" ]]
+		then
+
+			newAuthor="$oldAuthor"
+		fi
+
+        	if ! echo "$newAuthor" | grep -Eq "^[A-Za-z ]+$"
+        	then
+                	echo "Rejected, Author name must contain letter and space only!"
+                	continue
+        	fi
+        	break
+	done
+
+	while true
+	do
+		echo -n "New Date (Enter to keep): "
+		read newDate
+		if [[ -z "$newDate" ]]
+		then
+			newDate="$oldDate"
+		fi
+
+        	if ! echo "$newDate" | grep -q "^[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]$"
+        	then
+                	echo "Rejected, date must be in format dd/mm/yyyy only!"
+                	continue
+        	fi
+        	break
+	done
+
+
+		echo -n "New Status available/unavailable: "
+		read newStatus
+		if [[ -z "$newStatus" ]]
+		then
+			newStatus="$oldStatus"
+		fi
+
+		newLine="$id|$newTitle|$newAuthor|$newDate|$newStatus"
+
+		tmp=$(mktemp)
+		grep -v "^$id|" "$FILE" > "$tmp"
+		echo "$newLine" >> "$tmp"
+		mv "$tmp" "$FILE"
+
+		echo "Book updated successfully"
+		;;
+
+	*)
+		echo "Invalid choice."
+		;;
+
+esac

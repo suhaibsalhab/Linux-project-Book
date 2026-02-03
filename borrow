@@ -1,0 +1,74 @@
+#! /bin/bash
+
+
+
+
+FILE="./Data"
+[[ -f "$FILE" ]] || touch "$FILE"
+
+echo "Book Borrow:"
+echo "You can borrow up to 5 books, or type "stop" to end the borrow session only"
+
+count=0
+
+while [[ $count -lt 5 ]]
+do
+	echo -n 'Enter Book ID to borrow (or "stop"): '
+	read id
+
+	if [[ "$id" = "stop" ]]
+	then
+		echo "Borrow session ended"
+		exit 0
+	fi
+
+	line=$(grep "^$id|" "$FILE")
+
+	if [[ -z "$line" ]]
+	then
+
+		echo "Error Book ID not found"
+		continue
+	fi
+
+	status=$(echo "$line" | cut -d'|' -f5)
+
+	if [[ "$status" != "available" ]]
+	then
+		echo "Error Book is unavailable"
+		continue
+	fi
+
+	title=$(echo "$line" | cut -d'|' -f2)
+	author=$(echo "$line" | cut -d'|' -f3)
+	pdate=$(echo "$line" | cut -d'|' -f4)
+
+	new_line="$id|$title|$author|$date|unavailable"
+
+	tmp=$(mktemp)
+	updated=0
+
+	while IFS='|' read -r bid title author pdate st
+	do
+		if [[ "$bid" = "$id" ]]
+		then
+			echo "$bid|$title|$author|$pdate|unavailable" >> "$tmp"
+			updated=1
+		else
+			echo "$bid|$title|$author|$pdate|$st" >> "$tmp"
+		fi
+	done < "$FILE"
+
+	mv "$tmp" "$FILE"
+
+	if [[ $updated -eq 1 ]]
+	then
+		count=$((count+1))
+		echo "Borrowed successfully. ($count/5)"
+	else
+		echo "Error: Could not update the book status."
+	fi
+done
+
+echo "Reached maximum borrow limit (5). Borrow session ended."
+

@@ -1,0 +1,89 @@
+#! /bin/bash
+
+
+FILE="./Data"
+[[ -f "$FILE" ]] || touch "$FILE"
+
+echo " Search for a Book:"
+echo "1) Search by ID"
+echo "2) Search by Title (Full or Partial)"
+echo "Choose an option: "
+read choice
+
+case $choice in
+
+1)
+    echo "Enter Book ID: "
+    read id
+
+    found=0
+    while IFS='|' read -r bid title author date status
+    do
+        if [[ "$bid" = "$id" ]]; then
+            echo "Search Result: "
+            echo "Book ID: $bid"
+            echo "Title: $title"
+            echo "Author: $author"
+            echo "Publishing Date: $date"
+            echo "Status: $status"
+            found=1
+            break
+        fi
+    done < "$FILE"
+
+    if [[ $found -eq 0 ]]
+    then
+        echo "No book found with this ID."
+    fi
+    ;;
+
+2)
+    echo "1) Full Title Search"
+    echo "2) Partial Title Search"
+    echo "Choose an option: "
+    read tmode
+    echo "Enter the title or part of the title: "
+    read q
+
+    tmp=$(mktemp)
+
+    while IFS='|' read -r bid title author date status
+    do
+        if [[ "$tmode" = "1" ]]
+	then
+            if [[ "$title" = "$q" ]]
+	    then
+                echo "$bid|$title|$author|$date|$status" >> "$tmp"
+            fi
+        else
+            if [[ "$title" == *"$q"* ]]
+	    then
+                echo "$bid|$title|$author|$date|$status" >> "$tmp"
+            fi
+        fi
+    done < "$FILE"
+
+    if [[ ! -s "$tmp" ]]
+    then
+        echo "No matching books were found."
+        rm -f "$tmp"
+        exit 0
+    fi
+
+    echo "Matching Results (Sorted by Title):"
+    sort -t'|' -k2,2 "$tmp" | while IFS='|' read -r bid title author date status
+    do
+        echo "Book ID: $bid"
+        echo "Title: $title"
+        echo "Author: $author"
+        echo "Publishing Date: $pdate"
+        echo "Status: $status"
+    done
+
+    rm -f "$tmp"
+    ;;
+
+*)
+    echo "Invalid choice"
+    ;;
+esac

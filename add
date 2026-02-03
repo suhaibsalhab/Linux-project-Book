@@ -1,0 +1,59 @@
+#! /bin/bash
+
+
+FILE="./Data"
+[[ -f "$FILE" ]] || touch "$FILE"
+
+echo Add Book:
+
+while true
+do
+	echo Enter Book ID:
+	read id
+
+	if ! echo "$id" | grep -Eq "^[0-9][0-9]\.[0-9][0-9][0-9]-[A-Za-z]$" 
+	then
+		echo Rejected
+		continue
+	fi
+	if grep -q "^$id|" "$FILE"
+	then
+		echo Rejected: ID already exists!
+		continue
+	fi
+	break
+done
+
+
+echo Enter Book Title:
+read title 
+
+
+while true
+do
+	echo "Enter Author Name (letters and space only):"
+	read author
+
+	if ! echo "$author" | grep -Eq "^[A-Za-z ]+$"
+	then
+		echo "Rejected, Author name must contain letter and space only!"
+		continue
+	fi
+	break
+done
+
+while true
+do
+	echo "Enter Publishing Date (dd/mm/yyyy):"
+	read date
+
+	if ! echo "$date" | grep -q "^[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]$"
+	then
+		echo "Rejected, date must be in format dd/mm/yyyy only!"
+		continue
+	fi
+	break
+done
+
+echo "$id|$title|$author|$date|available" >> "$FILE"
+echo "Book Added Successfully" 

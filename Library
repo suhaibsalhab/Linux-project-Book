@@ -1,0 +1,29 @@
+#! /bin/bash
+
+
+
+
+
+FILE="./Data"
+[[ -f "$FILE" ]] || touch "$FILE"
+
+while true
+do
+	echo Library:
+	echo "1) Add Book"
+	echo "2) Modify Book (Delete|Modify)"
+	echo "3) Search for a book"
+	echo "4) Book Borrow"
+	echo "5) Exit"
+	read choice
+
+	case $choice in
+		1) ./add ;;
+		2) ./modify ;;
+		3) ./search ;;
+		4) ./borrow ;;
+		5) echo "Byeeeeeeeeee"
+		   exit 0 ;;	
+		*) echo "Invalid choice :( try again" ;;
+	esac
+done
